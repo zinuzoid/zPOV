@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include <util/delay_basic.h>
 #include <avr/pgmspace.h>
 
 #define LED1PORT PORTD
@@ -20,3 +21,4 @@
 #define LED8 PD0
 
 void SetLed(uint8_t inp);
+void PutChar(uint8_t ch,uint8_t delay);

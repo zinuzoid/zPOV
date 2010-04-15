@@ -1,26 +1,66 @@
 #include "main.h"
 #include "data.c"
 
+#define LedSync 50
+
+uint8_t ReadDelay()
+{
+	uint8_t tmp;
+	tmp=(PINB>>2)&0b00000111;
+	tmp^=tmp>>1;
+	tmp^=tmp>>2;
+	return tmp;
+}
+
+void PutStr(char *str,uint8_t delay)
+{
+	while(*str)
+	{
+		PutChar(*str,delay);
+		PutChar(*LedBlank,delay);
+		str++;
+	}
+}
+
 int main()
 {
 	DDRA=0xFF;
-	DDRD=0xFF;
+	DDRB=0x0;
+	DDRD=0b10111111;
 
 	PORTA=0xFF;
+	PORTB=0xFF;
 	PORTD=0xFF;
 
-	uint8_t i=0;
+	_delay_ms(100);
 
 	while(1)
 	{
-		if(i==5) i=0;
-		uint8_t tmp=pgm_read_byte(&ledOn[i]);
-		SetLed(tmp);
-		_delay_ms(250);
-		i++;
+		PORTD=ReadDelay();
+	}
+
+	if(bit_is_set(PIND,PD6))
+		PutStr("ABC",LedSync);
+	else
+		PutStr("XYZ",LedSync);
+
+	while(1)
+	{
+
 	}
 
 	return 0;
+}
+
+void PutChar(uint8_t ch,uint8_t delay)
+{
+	if((ch>='A')&&(ch<='Z')) ch-='A';
+	else if((ch>='a')&&(ch<='z')) ch-='a';
+	for(int i=0;i<=5;i++)
+	{
+		SetLed(pgm_read_byte(&LedChar[ch][i]));
+		for(int n=0;n<=delay;n++) _delay_ms(10);
+	}
 }
 
 void SetLed(uint8_t inp)
