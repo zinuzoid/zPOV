@@ -1,7 +1,7 @@
 #include "main.h"
 #include "data.c"
 
-#define LedSync 50
+uint8_t LedSync=3;
 
 uint8_t ReadDelay()
 {
@@ -17,7 +17,6 @@ void PutStr(char *str,uint8_t delay)
 	while(*str)
 	{
 		PutChar(*str,delay);
-		PutChar(*LedBlank,delay);
 		str++;
 	}
 }
@@ -32,35 +31,40 @@ int main()
 	PORTB=0xFF;
 	PORTD=0xFF;
 
-	_delay_ms(100);
+	//_delay_ms(500);
+	SetLed(0x00);
 
 	while(1)
 	{
-		PORTD=ReadDelay();
+		if(bit_is_clear(INPUT1PORT,INPUT1))
+		{
+			//PutStr("Kasetsart           ",LedSync);
+			PutStr("KU           ",LedSync);
+		}
 	}
-
-	if(bit_is_set(PIND,PD6))
-		PutStr("ABC",LedSync);
-	else
-		PutStr("XYZ",LedSync);
 
 	while(1)
 	{
-
+	//if(bit_is_set(PIND,PD6))
+		PutStr("VT      ",LedSync);
+	//else
+		//PutStr("XYZ",LedSync);
 	}
-
 	return 0;
 }
 
 void PutChar(uint8_t ch,uint8_t delay)
 {
-	if((ch>='A')&&(ch<='Z')) ch-='A';
-	else if((ch>='a')&&(ch<='z')) ch-='a';
-	for(int i=0;i<=5;i++)
+	if((ch>='A')&&(ch<='Z'))		ch-='A';
+	else if((ch>='a')&&(ch<='z'))	ch=ch-'a'+('Z'-'A')+1;
+	for(int i=0;i<5;i++)
 	{
-		SetLed(pgm_read_byte(&LedChar[ch][i]));
-		for(int n=0;n<=delay;n++) _delay_ms(10);
+		if(ch==' ') SetLed(LedBlank[i]);
+		else SetLed(pgm_read_byte(&LedChar[ch][i]));
+		for(int n=0;n<delay;n++) _delay_us(1000);
 	}
+	SetLed(LedBlank[0]);
+	for(int n=0;n<delay;n++) _delay_us(1000);
 }
 
 void SetLed(uint8_t inp)
@@ -104,4 +108,17 @@ void SetLed(uint8_t inp)
 		LED8PORT |= _BV(LED8);
 	else
 		LED8PORT &= ~_BV(LED8);
+}
+
+uint8_t ReadInput()
+{
+	uint8_t buff=0xFF;
+	//buff|=INPUT1PORT
+	buff|=bit_is_clear(INPUT1PORT,INPUT1)<<0;
+	buff|=bit_is_clear(INPUT2PORT,INPUT2)<<1;
+	buff|=bit_is_clear(INPUT3PORT,INPUT3)<<2;
+	buff|=bit_is_clear(INPUT4PORT,INPUT4)<<3;
+	buff|=bit_is_clear(INPUT5PORT,INPUT5)<<4;
+	buff|=bit_is_clear(INPUT6PORT,INPUT6)<<5;
+	return buff;
 }
